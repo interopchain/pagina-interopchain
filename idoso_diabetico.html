@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instâncias FHIR - RAC RNDS (Dark Mode)</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #9e9e9e;
+            --accent-blue: #4facfe;
+            --accent-purple: #9b51e0;
+            --accent-warning: #ffb74d;
+            --card-bg: #25282f;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--accent-blue);
+            margin-bottom: 35px;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #2a2a2a;
+            border: none;
+            outline: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .tab:hover {
+            background: #333;
+            color: #ffffff;
+        }
+
+        .tab.active {
+            background: var(--container-bg);
+            color: var(--accent-blue);
+            border-bottom: 3px solid var(--accent-blue);
+        }
+
+        /* Content Areas */
+        .content {
+            display: none;
+            animation: slideFadeIn 0.5s ease;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Enhanced Info Cards */
+        .info-card {
+            background: linear-gradient(145deg, var(--card-bg), #1a1c23);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.02), 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 5px solid var(--accent-blue);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-card.context-card {
+            border-left: 5px solid var(--accent-purple);
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #000;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .badge.loinc {
+            background-color: #00e676;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+        }
+
+        .badge.sus {
+            background-color: #ff9100;
+            box-shadow: 0 0 10px rgba(255, 145, 0, 0.3);
+        }
+
+        .badge.info {
+            background-color: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .info-term {
+            font-size: 1.15em;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+
+        .info-desc {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            color: #cccccc;
+            font-size: 0.95em;
+            position: relative;
+        }
+
+        .info-desc::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 1.2em;
+        }
+
+        .info-desc p {
+            margin: 0 0 10px 0;
+            padding-left: 35px;
+        }
+
+        .info-desc p:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight-text {
+            color: var(--accent-warning);
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        /* Tabela de Códigos Estilizada */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .styled-table thead tr {
+            background-color: #15161a;
+            color: var(--accent-blue);
+            text-align: left;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .styled-table tbody tr {
+            background-color: rgba(255, 255, 255, 0.02);
+            transition: background-color 0.2s ease;
+        }
+
+        .styled-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid var(--accent-purple);
+        }
+
+        .code-cell {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            color: var(--accent-purple);
+            font-weight: bold;
+        }
+
+        /* JSON Code Blocks */
+        pre {
+            background: #0d0d0d;
+            color: #a6accd;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        }
+
+        .json-key {
+            color: #89ddff;
+        }
+
+        .json-string {
+            color: #c3e88d;
+        }
+
+        .json-number {
+            color: #f78c6c;
+        }
+
+        @keyframes slideFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Instâncias FHIR - RAC</h1>
+        <p class="subtitle">Modelagem e Justificativas das Terminologias</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'contexto')">Contexto e Modelagem</button>
+            <button class="tab" onclick="openTab(event, 'glicose-cgm')">Glicose Intersticial</button>
+            <button class="tab" onclick="openTab(event, 'glicemia-capilar')">Glicemia Capilar</button>
+            <button class="tab" onclick="openTab(event, 'pas')">PA Sistólica</button>
+            <button class="tab" onclick="openTab(event, 'pad')">PA Diastólica</button>
+        </div>
+
+        <!-- Aba 1: Contexto Geral (Explicando as Terminologias e Tabela) -->
+        <div id="contexto" class="content active">
+
+            <div class="info-card context-card">
+                <div class="info-header">
+                    <span class="badge info">Diretrizes RNDS</span>
+                    <span class="info-term">Regras de Modelagem FHIR</span>
+                </div>
+                <div class="info-desc">
+                    <p>Sobre as terminologias, o manual indica para a <i>observation</i> utilizar o perfil
+                        <strong>BRMedidaObservada</strong>. Nesse perfil deve-se usar o valueset
+                        <strong>BRTipoObservacao</strong> e os codesystems <strong>BRTabelaSUS</strong> e o próprio
+                        BRTipoObservacao.
+                    </p>
+                    <p>Nós inclusive achamos exemplos no e-SUS APS que utilizam os códigos do BRTabelaSUS. Esses códigos
+                        estão publicados no <i>simplifier.net</i> no perfil da RNDS.</p>
+                </div>
+            </div>
+
+            <!-- Tabela de Códigos (Movida para antes da explicação da PA) -->
+            <div class="info-card context-card"
+                style="padding: 0; background: transparent; border: none; box-shadow: none;">
+                <div class="info-header" style="margin-bottom: 10px; padding: 0 5px;">
+                    <span class="badge info">Resumo</span>
+                    <span class="info-term">Tabela de Códigos do Relatório</span>
+                </div>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Sistema</th>
+                            <th>Código</th>
+                            <th>Nomenclatura / Display</th>
+                            <th>Descrição Clínica</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge sus">BRTabelaSUS</span></td>
+                            <td class="code-cell">0214010015</td>
+                            <td>Glicemia Capilar</td>
+                            <td>Consiste em um exame que fornece resultado imediato sobre a concentração de glicose nos
+                                capilares da polpa digital. O teste é realizado colocando-se uma pequena gota de sangue
+                                em uma tira reagente acoplada ao glicosímetro.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">99504-3</td>
+                            <td>Glucose [Mass/volume] in Interstitial fluid</td>
+                            <td>Representa a medição da glicose intersticial obtida por dispositivos de Monitorização
+                                Contínua da Glicose (CGM).</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge sus">BRTabelaSUS</span></td>
+                            <td class="code-cell">0301100039</td>
+                            <td>Aferição de Pressão Arterial</td>
+                            <td>Este procedimento destina-se à aferição da pressão arterial quando não faz parte da
+                                consulta.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">8480-6</td>
+                            <td>Pressão arterial sistólica</td>
+                            <td>Representa a medição da pressão arterial sistólica.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">8462-4</td>
+                            <td>Pressão arterial diastólica</td>
+                            <td>Representa a medição da pressão arterial diastólica.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card context-card">
+                <div class="info-header">
+                    <span class="badge info">Modelagem</span>
+                    <span class="info-term">Por que separamos PA Sistólica e Diastólica?</span>
+                </div>
+                <div class="info-desc">
+                    <p>Encontramos uma referência do LOINC (55284-4 - <i>Blood pressure systolic and diastolic</i>) que
+                        dizia:</p>
+                    <p class="highlight-text">"This term is intended as a section header for various blood pressure
+                        measurements (e.g., systolic, diastolic). LOINC discourages the reporting of two numbers, such
+                        as systolic and diastolic blood pressure (e.g., '120/80'), in one observation."</p>
+                    <p>Eles recomendam que os dados sejam reportados como duas variáveis separadas: sistólica (LOINC
+                        8480-6) e diastólica (LOINC 8462-4). Por isso optamos por usar dois LOINCs, um para cada
+                        observation de medição das pressões arteriais, já que no próprio manual de integração havia
+                        exemplos utilizando LOINC.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Aba 2: Glicose Intersticial -->
+        <div id="glicose-cgm" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">99504-3 <span style="color:var(--text-muted); font-weight:normal;">(Glucose
+                            [Mass/volume] in Interstitial fluid)</span></span>
+                </div>
+                <div class="info-desc">
+                    <p>Representa a medição da glicose intersticial obtida por dispositivos de Monitorização Contínua da
+                        Glicose (CGM).</p>
+                </div>
+            </div>
+            <pre><code>{
+    <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+    <span class="json-key">"id"</span>: <span class="json-string">"glicose-intersticial-cgm-001"</span>,
+    <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+    <span class="json-key">"code"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"99504-3"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Glucose [Mass/volume] in Interstitial fluid"</span>
+            }
+        ],
+        <span class="json-key">"text"</span>: <span class="json-string">"Glicose intersticial"</span>
+    },
+    <span class="json-key">"valueQuantity"</span>: {
+        <span class="json-key">"value"</span>: <span class="json-number">120</span>,
+        <span class="json-key">"unit"</span>: <span class="json-string">"mg/dL"</span>,
+        <span class="json-key">"system"</span>: <span class="json-string">"https://www.hl7.org/fhir/valueset-ucum-common.html"</span>,
+        <span class="json-key">"code"</span>: <span class="json-string">"mg/dL"</span>
+    },
+    <span class="json-key">"bodySite"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRLocalAfericao"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"1"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Braço direito"</span>
+            }
+        ]
+    },
+    <span class="json-key">"method"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRPosicaoIndividuo"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"2"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Sentado"</span>
+            }
+        ]
+    }
+}</code></pre>
+        </div>
+
+        <!-- Aba 3: Glicemia Capilar -->
+        <div id="glicemia-capilar" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge sus">BRTabelaSUS</span>
+                    <span class="info-term">0214010015 <span
+                            style="color:var(--text-muted); font-weight:normal;">(GLICEMIA CAPILAR)</span></span>
+                </div>
+                <div class="info-desc">
+                    <p>Consiste em um exame que fornece resultado imediato sobre a concentração de glicose nos capilares
+                        da polpa digital. O teste é realizado colocando-se uma pequena gota de sangue em uma tira
+                        reagente acoplada ao glicosímetro.</p>
+                </div>
+            </div>
+            <pre><code>{
+    <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+    <span class="json-key">"id"</span>: <span class="json-string">"glicemia-capilar-001"</span>,
+    <span class="json-key">"meta"</span>: {
+        <span class="json-key">"profile"</span>: [
+            <span class="json-string">"http://www.saude.gov.br/fhir/r4/StructureDefinition/BRMedidaObservada"</span>
+        ]
+    },
+    <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+    <span class="json-key">"code"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRTabelaSUS"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"0214010015"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"GLICEMIA CAPILAR"</span>
+            }
+        ],
+        <span class="json-key">"text"</span>: <span class="json-string">"Glicemia Capilar"</span>
+    },
+    <span class="json-key">"valueQuantity"</span>: {
+        <span class="json-key">"value"</span>: <span class="json-number">118</span>,
+        <span class="json-key">"unit"</span>: <span class="json-string">"mg/dL"</span>,
+        <span class="json-key">"system"</span>: <span class="json-string">"https://www.hl7.org/fhir/valueset-ucum-common.html"</span>,
+        <span class="json-key">"code"</span>: <span class="json-string">"mg/dL"</span>
+    },
+    <span class="json-key">"bodySite"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRLocalAfericao"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"9"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Dedo da mão"</span>
+            }
+        ]
+    },
+    <span class="json-key">"method"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRPosicaoIndividuo"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"2"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Sentado"</span>
+            }
+        ]
+    }
+}</code></pre>
+        </div>
+
+        <!-- Aba 4: Pressão Arterial Sistólica -->
+        <div id="pas" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">8480-6 <span style="color:var(--text-muted); font-weight:normal;">(Pressão
+                            arterial sistólica)</span></span>
+                </div>
+                <div class="info-desc">
+                    <p>Representa a medição da pressão arterial sistólica.</p>
+                </div>
+            </div>
+            <pre><code>{
+    <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+    <span class="json-key">"id"</span>: <span class="json-string">"pressao-arterial-sistolica-001"</span>,
+    <span class="json-key">"meta"</span>: {
+        <span class="json-key">"profile"</span>: [
+            <span class="json-string">"http://www.saude.gov.br/fhir/r4/StructureDefinition/BRMedidaObservada"</span>
+        ]
+    },
+    <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+    <span class="json-key">"code"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"8480-6"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Pressão Arterial Sistólica"</span>
+            }
+        ],
+        <span class="json-key">"text"</span>: <span class="json-string">"Pressão Arterial Sistólica"</span>
+    },
+    <span class="json-key">"valueQuantity"</span>: {
+        <span class="json-key">"value"</span>: <span class="json-number">120</span>,
+        <span class="json-key">"unit"</span>: <span class="json-string">"mmHg"</span>,
+        <span class="json-key">"system"</span>: <span class="json-string">"https://www.hl7.org/fhir/valueset-ucum-common.html"</span>,
+        <span class="json-key">"code"</span>: <span class="json-string">"mm[Hg]"</span>
+    },
+    <span class="json-key">"bodySite"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRLocalAfericao"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"6"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Pulso esquerdo"</span>
+            }
+        ]
+    },
+    <span class="json-key">"method"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRPosicaoIndividuo"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"2"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Sentado"</span>
+            }
+        ]
+    }
+}</code></pre>
+        </div>
+
+        <!-- Aba 5: Pressão Arterial Diastólica -->
+        <div id="pad" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">8462-4 <span style="color:var(--text-muted); font-weight:normal;">(Pressão
+                            arterial diastólica)</span></span>
+                </div>
+                <div class="info-desc">
+                    <p>Representa a medição da pressão arterial diastólica.</p>
+                </div>
+            </div>
+            <pre><code>{
+    <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+    <span class="json-key">"id"</span>: <span class="json-string">"pressao-arterial-diastolica-001"</span>,
+    <span class="json-key">"meta"</span>: {
+        <span class="json-key">"profile"</span>: [
+            <span class="json-string">"http://www.saude.gov.br/fhir/r4/StructureDefinition/BRMedidaObservada"</span>
+        ]
+    },
+    <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+    <span class="json-key">"code"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"8462-4"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Pressão Arterial Diastólica"</span>
+            }
+        ],
+        <span class="json-key">"text"</span>: <span class="json-string">"Pressão Arterial Diastólica"</span>
+    },
+    <span class="json-key">"valueQuantity"</span>: {
+        <span class="json-key">"value"</span>: <span class="json-number">80</span>,
+        <span class="json-key">"unit"</span>: <span class="json-string">"mmHg"</span>,
+        <span class="json-key">"system"</span>: <span class="json-string">"https://www.hl7.org/fhir/valueset-ucum-common.html"</span>,
+        <span class="json-key">"code"</span>: <span class="json-string">"mm[Hg]"</span>
+    },
+    <span class="json-key">"bodySite"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRLocalAfericao"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"6"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Pulso esquerdo"</span>
+            }
+        ]
+    },
+    <span class="json-key">"method"</span>: {
+        <span class="json-key">"coding"</span>: [
+            {
+                <span class="json-key">"system"</span>: <span class="json-string">"http://www.saude.gov.br/fhir/r4/CodeSystem/BRPosicaoIndividuo"</span>,
+                <span class="json-key">"code"</span>: <span class="json-string">"2"</span>,
+                <span class="json-key">"display"</span>: <span class="json-string">"Sentado"</span>
+            }
+        ]
+    }
+}</code></pre>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, content, tabs;
+
+            content = document.getElementsByClassName("content");
+            for (i = 0; i < content.length; i++) {
+                content[i].style.display = "none";
+                content[i].classList.remove("active");
+            }
+
+            tabs = document.getElementsByClassName("tab");
+            for (i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+
+</body>
+
+</html>

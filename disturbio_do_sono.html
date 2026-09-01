@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instâncias FHIR - INTEROPCHAIN (AOS)</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #9e9e9e;
+            --accent-blue: #4facfe;
+            --accent-purple: #9b51e0;
+            --accent-warning: #ffb74d;
+            --card-bg: #25282f;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--accent-blue);
+            margin-bottom: 35px;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #2a2a2a;
+            border: none;
+            outline: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .tab:hover {
+            background: #333;
+            color: #ffffff;
+        }
+
+        .tab.active {
+            background: var(--container-bg);
+            color: var(--accent-blue);
+            border-bottom: 3px solid var(--accent-blue);
+        }
+
+        /* Content Areas */
+        .content {
+            display: none;
+            animation: slideFadeIn 0.5s ease;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Enhanced Info Cards */
+        .info-card {
+            background: linear-gradient(145deg, var(--card-bg), #1a1c23);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.02), 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 5px solid var(--accent-blue);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-card.context-card {
+            border-left: 5px solid var(--accent-purple);
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #000;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .badge.loinc {
+            background-color: #00e676;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+        }
+
+        .badge.snomed {
+            background-color: #ff5252;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 82, 82, 0.3);
+        }
+
+        .badge.sus {
+            background-color: #ff9100;
+            box-shadow: 0 0 10px rgba(255, 145, 0, 0.3);
+        }
+
+        .badge.info {
+            background-color: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .info-term {
+            font-size: 1.15em;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+
+        .info-desc {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            color: #cccccc;
+            font-size: 0.95em;
+            position: relative;
+        }
+
+        .info-desc::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 1.2em;
+        }
+
+        .info-desc p {
+            margin: 0 0 10px 0;
+            padding-left: 35px;
+        }
+
+        .info-desc p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Tabela de Códigos Estilizada */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .styled-table thead tr {
+            background-color: #15161a;
+            color: var(--accent-blue);
+            text-align: left;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .styled-table tbody tr {
+            background-color: rgba(255, 255, 255, 0.02);
+            transition: background-color 0.2s ease;
+        }
+
+        .styled-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid var(--accent-purple);
+        }
+
+        .code-cell {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            color: var(--accent-warning);
+            font-weight: bold;
+        }
+
+        /* JSON Code Blocks */
+        pre {
+            background: #0d0d0d;
+            color: #a6accd;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+            margin-bottom: 30px;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        }
+
+        .json-key {
+            color: #89ddff;
+        }
+
+        .json-string {
+            color: #c3e88d;
+        }
+
+        .json-number {
+            color: #f78c6c;
+        }
+
+        @keyframes slideFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Instâncias FHIR - INTEROPCHAIN</h1>
+        <p class="subtitle">Perfil de Avaliação de Apneia Obstrutiva do Sono (AOS)</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab(event, 'contexto')">Contexto e Modelagem</button>
+            <button class="tab" onclick="openTab(event, 'oximetria')">Oximetria (SpO2)</button>
+            <button class="tab" onclick="openTab(event, 'sinais-vitais')">Sinais Vitais (PA e FC)</button>
+            <button class="tab" onclick="openTab(event, 'fases-sono')">Fases do Sono</button>
+        </div>
+
+        <!-- Aba 1: Contexto e Modelagem -->
+        <div id="contexto" class="content active">
+
+            <div class="info-card context-card">
+                <div class="info-header">
+                    <span class="badge info">Projeto</span>
+                    <span class="info-term">INTEROPCHAIN - Monitoramento de AOS</span>
+                </div>
+                <div class="info-desc">
+                    <p>Este perfil foca na captura do Índice de Apneia-Hipopneia (IAH) e na classificação de risco
+                        derivada de instrumentos clínicos baseados no padrão HL7 FHIR R5. A separação dos requisitos foi
+                        realizada para melhor atender à natureza distinta de sensores versus questionários.</p>
+                </div>
+            </div>
+
+            <div class="info-card context-card"
+                style="padding: 0; background: transparent; border: none; box-shadow: none;">
+                <div class="info-header" style="margin-bottom: 10px; padding: 0 5px;">
+                    <span class="badge info">Regras</span>
+                    <span class="info-term">Requisitos para Dados de Telemetria e Instrumentos</span>
+                </div>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Campo FHIR</th>
+                            <th>Telemetria (Wearables/Sensores)</th>
+                            <th>Instrumentos Clínicos (Questionários)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-cell">status</td>
+                            <td>Obrigatório. Deve ser "final".</td>
+                            <td>Obrigatório. Estado da observação.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-cell">code</td>
+                            <td>Obrigatório. Identificação da métrica via LOINC.</td>
+                            <td>Obrigatório. Código do instrumento de triagem.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-cell">subject</td>
+                            <td>Obrigatório. Referência ao paciente monitorado.</td>
+                            <td>Obrigatório. Referência ao paciente que respondeu.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-cell">effectiveDateTime</td>
+                            <td>Obrigatório. Momento exato da coleta pelo sensor.</td>
+                            <td>Obrigatório. Data da aplicação do questionário.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-cell">value*</td>
+                            <td>Obrigatório. valueQuantity (valor numérico e unidade).</td>
+                            <td>Obrigatório. valueCodeableConcept/valueQuantity (escore).</td>
+                        </tr>
+                        <tr>
+                            <td class="code-cell">method / derivedFrom</td>
+                            <td><strong>method:</strong> Obrigatório. Rastreabilidade do dispositivo.</td>
+                            <td><strong>derivedFrom:</strong> Obrigatório. Referência ao QuestionnaireResponse.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card context-card"
+                style="padding: 0; background: transparent; border: none; box-shadow: none; margin-top: 40px;">
+                <div class="info-header" style="margin-bottom: 10px; padding: 0 5px;">
+                    <span class="badge info">Terminologias</span>
+                    <span class="info-term">Codificação e Interoperabilidade Semântica</span>
+                </div>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Dado Clínico</th>
+                            <th>Sistema</th>
+                            <th>Código</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Diagnóstico</td>
+                            <td>Apneia Obstrutiva do Sono</td>
+                            <td><span class="badge snomed">SNOMED CT</span></td>
+                            <td class="code-cell">73430006</td>
+                        </tr>
+                        <tr>
+                            <td>Respiratório</td>
+                            <td>Índice Apneia-Hipopneia (IAH)</td>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">90571-0</td>
+                        </tr>
+                        <tr>
+                            <td>Oximetria</td>
+                            <td>SpO2 (Média/Mínima)</td>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">59408-5</td>
+                        </tr>
+                        <tr>
+                            <td>Oximetria</td>
+                            <td>Tempo com SpO2 < 90%</td>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">96634-8</td>
+                        </tr>
+                        <tr>
+                            <td>Pressão Arterial</td>
+                            <td>Sistólica e Diastólica</td>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">85354-9</td>
+                        </tr>
+                        <tr>
+                            <td>Sono</td>
+                            <td>Duração do Sono (Fases)</td>
+                            <td><span class="badge loinc">LOINC</span></td>
+                            <td class="code-cell">93828-2 a 93832-4</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- Aba 2: Oximetria -->
+        <div id="oximetria" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">59408-5 <span
+                            style="color:var(--text-muted); font-weight:normal;">(Saturação de oxigênio -
+                            Mínima)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199464"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"59408-5"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Saturação de oxigênio no sangue arterial por oximetria de pulso"</span>
+    }],
+    <span class="json-key">"text"</span>: <span class="json-string">"SpO2 (Mínima)"</span>
+  },
+  <span class="json-key">"subject"</span>: {
+    <span class="json-key">"reference"</span>: <span class="json-string">"Patient/2.16.840.1.113883.13.237-00000000191"</span>
+  },
+  <span class="json-key">"effectiveDateTime"</span>: <span class="json-string">"2026-07-30T17:38:13-03:00"</span>,
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">84</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"%"</span>,
+    <span class="json-key">"system"</span>: <span class="json-string">"http://unitsofmeasure.org"</span>,
+    <span class="json-key">"code"</span>: <span class="json-string">"%"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8 · WATCH · SM-L320 · Samsung Electronics"</span>
+  }
+}</code></pre>
+
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">59408-5 <span
+                            style="color:var(--text-muted); font-weight:normal;">(Saturação de oxigênio -
+                            Média)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199463"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"59408-5"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Saturação de oxigênio (Média)"</span>
+    }]
+  },
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">96.3</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"%"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8"</span>
+  }
+}</code></pre>
+
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">96634-8 <span style="color:var(--text-muted); font-weight:normal;">(Tempo
+                            com saturação < 90%)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199465"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"96634-8"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Tempo com saturação abaixo de 90%"</span>
+    }]
+  },
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">189.7</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"s"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8"</span>
+  }
+}</code></pre>
+        </div>
+
+        <!-- Aba 3: Sinais Vitais -->
+        <div id="sinais-vitais" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">85354-9 <span style="color:var(--text-muted); font-weight:normal;">(Pressão
+                            Arterial)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199468"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"85354-9"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Painel de pressão arterial"</span>
+    }],
+    <span class="json-key">"text"</span>: <span class="json-string">"Pressão Arterial"</span>
+  },
+  <span class="json-key">"subject"</span>: {
+    <span class="json-key">"reference"</span>: <span class="json-string">"Patient/2.16.840.1.113883.13.237-00000000191"</span>
+  },
+  <span class="json-key">"effectiveDateTime"</span>: <span class="json-string">"2026-07-30T17:38:16-03:00"</span>,
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8"</span>
+  },
+  <span class="json-key">"component"</span>: [
+    {
+      <span class="json-key">"code"</span>: { <span class="json-key">"text"</span>: <span class="json-string">"Sistólica"</span> },
+      <span class="json-key">"valueQuantity"</span>: { <span class="json-key">"value"</span>: <span class="json-number">120</span>, <span class="json-key">"unit"</span>: <span class="json-string">"mmHg"</span> }
+    },
+    {
+      <span class="json-key">"code"</span>: { <span class="json-key">"text"</span>: <span class="json-string">"Diastólica"</span> },
+      <span class="json-key">"valueQuantity"</span>: { <span class="json-key">"value"</span>: <span class="json-number">80</span>, <span class="json-key">"unit"</span>: <span class="json-string">"mmHg"</span> }
+    }
+  ]
+}</code></pre>
+
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">8867-4 <span
+                            style="color:var(--text-muted); font-weight:normal;">(Frequência Cardíaca)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199467"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"8867-4"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Frequência cardíaca"</span>
+    }],
+    <span class="json-key">"text"</span>: <span class="json-string">"Frequência Cardíaca"</span>
+  },
+  <span class="json-key">"subject"</span>: {
+    <span class="json-key">"reference"</span>: <span class="json-string">"Patient/2.16.840.1.113883.13.237-00000000191"</span>
+  },
+  <span class="json-key">"effectiveDateTime"</span>: <span class="json-string">"2026-07-30T17:38:15-03:00"</span>,
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">81</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"beats/min"</span>,
+    <span class="json-key">"system"</span>: <span class="json-string">"http://unitsofmeasure.org"</span>,
+    <span class="json-key">"code"</span>: <span class="json-string">"/min"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8 · WATCH · SM-L320 · Samsung Electronics"</span>
+  }
+}</code></pre>
+        </div>
+
+        <!-- Aba 4: Fases do Sono -->
+        <div id="fases-sono" class="content">
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">93831-6 <span style="color:var(--text-muted); font-weight:normal;">(Duração
+                            do Sono Profundo)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199462"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"93831-6"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Duração do sono profundo"</span>
+    }],
+    <span class="json-key">"text"</span>: <span class="json-string">"Sono: Profundo"</span>
+  },
+  <span class="json-key">"subject"</span>: {
+    <span class="json-key">"reference"</span>: <span class="json-string">"Patient/2.16.840.1.113883.13.237-00000000191"</span>
+  },
+  <span class="json-key">"effectiveDateTime"</span>: <span class="json-string">"2026-07-30T17:38:11-03:00"</span>,
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">73</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"min"</span>,
+    <span class="json-key">"system"</span>: <span class="json-string">"http://unitsofmeasure.org"</span>,
+    <span class="json-key">"code"</span>: <span class="json-string">"min"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8 · WATCH · SM-L320 · Samsung Electronics"</span>
+  }
+}</code></pre>
+
+            <div class="info-card">
+                <div class="info-header">
+                    <span class="badge loinc">LOINC</span>
+                    <span class="info-term">93829-0 <span style="color:var(--text-muted); font-weight:normal;">(Duração
+                            do Sono REM)</span></span>
+                </div>
+            </div>
+            <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"id"</span>: <span class="json-string">"199460"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,
+  <span class="json-key">"code"</span>: {
+    <span class="json-key">"coding"</span>: [{
+      <span class="json-key">"system"</span>: <span class="json-string">"http://loinc.org"</span>,
+      <span class="json-key">"code"</span>: <span class="json-string">"93829-0"</span>,
+      <span class="json-key">"display"</span>: <span class="json-string">"Duração do sono REM"</span>
+    }]
+  },
+  <span class="json-key">"valueQuantity"</span>: {
+    <span class="json-key">"value"</span>: <span class="json-number">81</span>,
+    <span class="json-key">"unit"</span>: <span class="json-string">"min"</span>
+  },
+  <span class="json-key">"method"</span>: {
+    <span class="json-key">"text"</span>: <span class="json-string">"Galaxy Watch8"</span>
+  }
+}</code></pre>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, content, tabs;
+
+            content = document.getElementsByClassName("content");
+            for (i = 0; i < content.length; i++) {
+                content[i].style.display = "none";
+                content[i].classList.remove("active");
+            }
+
+            tabs = document.getElementsByClassName("tab");
+            for (i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+
+</body>
+
+</html>

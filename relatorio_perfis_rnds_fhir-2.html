@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Interativo: Perfis FHIR na RNDS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #38bdf8;
+            --accent-teal: #2dd4bf;
+            --accent-purple: #c084fc;
+            --accent-amber: #fbbf24;
+            --accent-rose: #f43f5e;
+            --badge-mandatory: #22c55e;
+            --badge-optional: #3b82f6;
+            --badge-forbidden: #ef4444;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        /* Header Navigation Sticky */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            color: #0f172a;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .nav-steps {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .step-pill {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .step-pill:hover,
+        .step-pill.active {
+            background-color: var(--accent-blue);
+            color: #0f172a;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Section Styling */
+        .section-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .section-num {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        /* Code & JSON Visualizers */
+        .code-container {
+            background-color: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: var(--font-code);
+            font-size: 0.95rem;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .json-key {
+            color: var(--accent-blue);
+        }
+
+        .json-string {
+            color: var(--accent-teal);
+        }
+
+        .json-null {
+            color: var(--accent-rose);
+        }
+
+        /* Badge Pills */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-mandatory {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge-optional {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-forbidden {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Key Rule Table */
+        .rule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .rule-table th,
+        .rule-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .rule-table th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        /* SVG & Interactive Venn Diagram */
+        .venn-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: #090d16;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .venn-svg {
+            max-width: 600px;
+            width: 100%;
+            height: auto;
+        }
+
+        .venn-circle {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        .venn-circle:hover,
+        .venn-circle.active {
+            opacity: 0.85;
+            filter: drop-shadow(0 0 12px var(--circle-color));
+        }
+
+        .venn-info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+            width: 100%;
+            text-align: center;
+            min-height: 70px;
+        }
+
+        /* Graph / Mindmap View */
+        .graph-container {
+            background-color: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .graph-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .graph-hint {
+            font-size: 0.85rem;
+            color: var(--accent-amber);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .profile-node {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .profile-node:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);
+        }
+
+        .profile-node.selected {
+            border-color: var(--accent-teal);
+            background-color: rgba(45, 212, 191, 0.1);
+            box-shadow: 0 0 0 2px var(--accent-teal);
+        }
+
+        .profile-node.dependency-highlight {
+            border-color: var(--accent-amber);
+            background-color: rgba(251, 191, 36, 0.1);
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .node-fhir {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            font-weight: 700;
+            font-family: var(--font-code);
+        }
+
+        .node-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .node-subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .dep-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .dep-tag {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: var(--font-code);
+        }
+
+        /* Alert Callout for July 2026 */
+        .alert-box {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            border-left: 6px solid var(--accent-rose);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            background: var(--accent-rose);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .alert-content h3 {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .alert-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Interactive Checklist / Subset Resolver */
+        .resolver-box {
+            background-color: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .check-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .check-card:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .check-card input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-teal);
+            cursor: pointer;
+        }
+
+        .result-panel {
+            background: rgba(45, 212, 191, 0.05);
+            border: 1px dashed var(--accent-teal);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .result-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--accent-teal);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .result-chip {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent-teal);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chip-count {
+            background: var(--accent-teal);
+            color: #0f172a;
+            font-size: 0.7rem;
+            font-weight: 800;
+            border-radius: 10px;
+            padding: 2px 6px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px 0 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Fixo de Navegação -->
+    <header class="sticky-header">
+        <div class="header-content">
+            <div class="logo-area">
+                <span class="logo-badge">RNDS / FHIR</span>
+                <span class="logo-title">Relatório de Perfis</span>
+            </div>
+            <nav class="nav-steps">
+                <a href="#step1" class="step-pill">1. Recurso Base</a>
+                <a href="#step2" class="step-pill">2. Regras de Perfil</a>
+                <a href="#step3" class="step-pill">3. Modelos RNDS</a>
+                <a href="#step4" class="step-pill">4. BR-Core (Matheus)</a>
+                <a href="#step5" class="step-pill">5. RAC (Henrique)</a>
+                <a href="#step6" class="step-pill">6. Atualização 2026</a>
+                <a href="#step7" class="step-pill">7. Subconjunto Prático</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Análise de Perfis FHIR na RNDS</h1>
+            <p class="hero-subtitle">
+                Uma abordagem bottom-up para compreender a arquitetura de dados da Rede Nacional de Dados em Saúde
+                (RNDS),
+                suas interdependências de perfis e os desafios para o desenvolvimento de software no SUS.
+            </p>
+        </section>
+
+        <!-- SEÇÃO 1: Recurso FHIR Observation Válido e Reconhecimento de Chaves -->
+        <section id="step1" class="section-card">
+            <div class="section-header">
+                <div class="section-num">1</div>
+                <div>
+                    <h2 class="section-title">Recurso FHIR Observation Base & Reconhecimento de Chaves</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Entendendo o bloco básico e a validação
+                        de elementos no padrão FHIR</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                Na especificação padrão do HL7 FHIR, a estrutura mínima de um recurso é extremamente flexível.
+                Para que um payload seja considerado um recurso FHIR <code>Observation</code> sintaticamente válido pela
+                especificação base, basta declarar o seu tipo:
+            </p>
+
+            <div class="code-container" style="margin-bottom: 24px;">
+                <div
+                    style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-family: var(--font-sans);">
+                    JSON Mínimo Válido no Padrão FHIR Base:
+                </div>
+                <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>
+}</code></pre>
+            </div>
+
+            <h3 style="font-size: 1.1rem; color: var(--accent-blue); margin-bottom: 12px;">Chaves Reconhecidas vs. Não
+                Reconhecidas pelo Padrão FHIR</h3>
+            <p class="section-desc">
+                A especificação do FHIR possui um esquema estruturado estrito. O padrão diferencia categoricamente as
+                chaves (propriedades) que um servidor FHIR aceita:
+            </p>
+
+            <!-- Exemplo e Tabela Explicativa de Chaves Reconhecidas / Não Reconhecidas -->
+            <div class="code-container" style="margin-bottom: 20px;">
+                <div
+                    style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; font-family: var(--font-sans);">
+                    Exemplo Prático no Payload JSON:
+                </div>
+                <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,               <span class="badge badge-mandatory">✔️ Chave Reconhecida (Elemento Nativo FHIR)</span>
+  <span class="json-key">"cpfPaciente"</span>: <span class="json-string">"12345678900"</span>      <span class="badge badge-forbidden">❌ Chave Não Reconhecida (Atributo Extra Fora do Padrão)</span>
+}</code></pre>
+            </div>
+
+            <table class="rule-table" style="margin-bottom: 24px;">
+                <thead>
+                    <tr>
+                        <th>Tipo de Chave</th>
+                        <th>Definição no FHIR</th>
+                        <th>Exemplo</th>
+                        <th>Comportamento do Servidor FHIR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-mandatory">Chave Reconhecida</span></td>
+                        <td>Propriedade oficial definida na especificação nativa do FHIR para o recurso.</td>
+                        <td><code>"status": "final"</code> ou <code>"issued": "2026-08-20..."</code></td>
+                        <td>Aceita e validada conforme as regras de cardinalidade e tipo de dado do FHIR.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-forbidden">Chave Não Reconhecida</span></td>
+                        <td>Propriedade customizada inventada que não existe na especificação do recurso.</td>
+                        <td><code>"cpfPaciente": "12345678900"</code> ou <code>"nomePosto": "UBS Centro"</code></td>
+                        <td><strong>Rejeitada</strong> por parsers FHIR estritos. Dados customizados devem ser inseridos
+                            obrigatoriamente através do elemento nativo <code>extension</code>.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div
+                style="margin-top: 16px; background: rgba(56, 189, 248, 0.05); border-left: 4px solid var(--accent-blue); padding: 12px 16px; border-radius: 4px;">
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                    💡 <strong>O Motivo para os Perfis:</strong> Embora o JSON mínimo seja válido, ele não possui dados
+                    clínicos. E tentar adicionar dados criando chaves diretas gera <strong>chaves não
+                        reconhecidas</strong> que quebram o padrão. Para estender e obrigar campos específicos de forma
+                    válida, utilizamos os <strong>Perfis FHIR</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: Conceito de Perfil FHIR -->
+        <section id="step2" class="section-card">
+            <div class="section-header">
+                <div class="section-num">2</div>
+                <div>
+                    <h2 class="section-title">O que um Perfil FHIR define?</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Restringindo recursos com chaves
+                        Obrigatórias, Opcionais e Proibidas</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                Um <strong>Perfil FHIR</strong> (StructureDefinition) estende ou restringe o recurso base para um
+                contexto de uso específico (como a RNDS no Brasil). Ele estabelece regras rígidas sobre as chaves do
+                JSON:
+            </p>
+
+            <!-- Exemplo com 6 Chaves e Diferenciação Visual -->
+            <div class="code-container" style="margin-bottom: 20px;">
+                <div
+                    style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; font-family: var(--font-sans);">
+                    Exemplo de JSON de uma Observação sob Perfil RNDS (Passe o mouse ou veja a legenda):
+                </div>
+                <pre><code>{
+  <span class="json-key">"resourceType"</span>: <span class="json-string">"Observation"</span>, <span class="badge badge-mandatory">1..1 Obrigatória</span>
+  <span class="json-key">"status"</span>: <span class="json-string">"final"</span>,             <span class="badge badge-mandatory">1..1 Obrigatória</span>
+  <span class="json-key">"code"</span>: { <span class="json-key">"coding"</span>: [...] },      <span class="badge badge-mandatory">1..1 Obrigatória</span>
+  <span class="json-key">"subject"</span>: { <span class="json-key">"reference"</span>: <span class="json-string">"..."</span> }, <span class="badge badge-optional">0..1 Opcional</span>
+  <span class="json-key">"effectiveDateTime"</span>: <span class="json-string">"2026-08"</span>, <span class="badge badge-optional">0..1 Opcional</span>
+  <span class="json-key">"bodySite"</span>: <span class="json-null">null</span>                 <span class="badge badge-forbidden">0..0 Proibida</span>
+}</code></pre>
+            </div>
+
+            <!-- Tabela Explicativa dos Tipos de Chaves -->
+            <table class="rule-table">
+                <thead>
+                    <tr>
+                        <th>Tipo de Chave</th>
+                        <th>Cardinalidade</th>
+                        <th>Significado no Perfil RNDS</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-mandatory">Obrigatória</span></td>
+                        <td><code>1..1</code> ou <code>1..*</code></td>
+                        <td>O campo deve <strong>obrigatoriamente</strong> estar presente no payload. Se ausente, o
+                            servidor da RNDS rejeita.</td>
+                        <td><code>resourceType</code>, <code>status</code>, <code>code</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-optional">Opcional</span></td>
+                        <td><code>0..1</code> ou <code>0..*</code></td>
+                        <td>O campo pode ser omitido caso o sistema de origem não possua a informação.</td>
+                        <td><code>subject</code>, <code>effectiveDateTime</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-forbidden">Proibida</span></td>
+                        <td><code>0..0</code></td>
+                        <td>O campo é <strong>expressamente proibido</strong> no perfil para evitar redundância ou
+                            inconsistência.</td>
+                        <td><code>bodySite</code> (em certos exames laboratoriais)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SEÇÃO 3: Modelos Computacionais da RNDS -->
+        <section id="step3" class="section-card">
+            <div class="section-header">
+                <div class="section-num">3</div>
+                <div>
+                    <h2 class="section-title">Modelos Computacionais da RNDS</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Organização dos Perfis para o SUS</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                Para construir softwares interoperáveis para o SUS, os perfis da RNDS não ficam soltos; eles são
+                agrupados em <strong>Modelos Computacionais</strong> (casos de uso de negócio).
+                O modelo <strong>BR-Core</strong> atua como o núcleo estrutural compartilhado por todos os demais
+                modelos clínicos (RAC, REL, RIA, etc.).
+            </p>
+
+            <!-- Diagrama de Venn Interativo em SVG -->
+            <div class="venn-wrapper">
+                <div style="font-weight: 700; color: var(--accent-blue); font-size: 0.95rem;">
+                    Diagrama Interativo de Sobreposição dos Modelos RNDS
+                </div>
+                <svg class="venn-svg" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="6" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+
+                    <!-- Modelo RAC (Laranja) -->
+                    <circle class="venn-circle" id="circle-rac" cx="220" cy="170" r="110" fill="#f97316"
+                        style="--circle-color: #f97316;" onclick="showVennInfo('RAC')" />
+                    <text x="170" y="140" fill="#ffffff" font-weight="bold" font-size="14"
+                        pointer-events="none">RAC</text>
+                    <text x="155" y="158" fill="#e2e8f0" font-size="10" pointer-events="none">(Atend. Clínico)</text>
+
+                    <!-- Modelo REL (Verde) -->
+                    <circle class="venn-circle" id="circle-rel" cx="380" cy="170" r="110" fill="#10b981"
+                        style="--circle-color: #10b981;" onclick="showVennInfo('REL')" />
+                    <text x="410" y="140" fill="#ffffff" font-weight="bold" font-size="14"
+                        pointer-events="none">REL</text>
+                    <text x="390" y="158" fill="#e2e8f0" font-size="10" pointer-events="none">(Sumário Alta)</text>
+
+                    <!-- Modelo RIA (Roxo) -->
+                    <circle class="venn-circle" id="circle-ria" cx="300" cy="270" r="100" fill="#a855f7"
+                        style="--circle-color: #a855f7;" onclick="showVennInfo('RIA')" />
+                    <text x="285" y="310" fill="#ffffff" font-weight="bold" font-size="14"
+                        pointer-events="none">RIA</text>
+                    <text x="260" y="325" fill="#e2e8f0" font-size="10" pointer-events="none">(Imunização)</text>
+
+                    <!-- BR-CORE Central (Azul) -->
+                    <circle class="venn-circle active" id="circle-brcore" cx="300" cy="200" r="75" fill="#0284c7"
+                        style="--circle-color: #0284c7; opacity: 0.85;" onclick="showVennInfo('BRCORE')" />
+                    <text x="300" y="195" fill="#ffffff" font-weight="800" font-size="16" text-anchor="middle"
+                        pointer-events="none">BR-Core</text>
+                    <text x="300" y="212" fill="#e0f2fe" font-size="11" text-anchor="middle" font-weight="600"
+                        pointer-events="none">(Núcleo Comum)</text>
+                </svg>
+
+                <div class="venn-info-box" id="venn-info">
+                    <strong style="color: var(--accent-blue);" id="venn-title">BR-Core (Núcleo Comum)</strong>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;" id="venn-desc">
+                        Contém os perfis básicos transversais (Indivíduo, Profissional, Estabelecimento, Lotação)
+                        reaproveitados por todos os outros modelos da RNDS.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 4: Estudo BR-Core (Matheus) -->
+        <section id="step4" class="section-card">
+            <div class="section-header">
+                <div class="section-num">4</div>
+                <div>
+                    <h2 class="section-title">Modelo BR-Core (Estudo do Matheus)</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Mapeamento de Perfis e Dependências
+                        Internas</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                Ao estudar os perfis do BR-Core, descobrimos uma forte <strong>dependência em cadeia</strong>. Um perfil
+                de Diagnóstico não existe de forma isolada; ele referencia Indivíduo, Estabelecimento, Profissional e
+                Amostra.
+            </p>
+
+            <div class="graph-container">
+                <div class="graph-controls">
+                    <span class="graph-hint">👆 Clique em qualquer perfil para destacar suas dependências
+                        diretas:</span>
+                </div>
+
+                <div class="node-grid" id="brcore-nodes">
+                    <!-- Cards gerados via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 5: Estudo RAC (Henrique) -->
+        <section id="step5" class="section-card">
+            <div class="section-header">
+                <div class="section-num">5</div>
+                <div>
+                    <h2 class="section-title">Modelo RAC (Estudo do Henrique)</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Registro de Atendimento Clínico e
+                        Dependência Cruzada com o BR-Core</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                O modelo <strong>RAC (Registro de Atendimento Clínico)</strong> é um documento composto
+                (<code>Composition</code>) que agrega múltiplos eventos de um atendimento.
+                Ele introduz novos perfis que, por sua vez, herdam e exigem perfis do BR-Core, tornando o gráfico de
+                dependências ainda mais complexo.
+            </p>
+
+            <div class="graph-container">
+                <div class="graph-controls">
+                    <span class="graph-hint">👆 Clique em um perfil RAC para visualizar como ele puxa outros
+                        perfis:</span>
+                </div>
+
+                <div class="node-grid" id="rac-nodes">
+                    <!-- Cards gerados via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 6: Atualização de Julho de 2026 -->
+        <section id="step6" class="section-card">
+            <div class="section-header">
+                <div class="section-num">6</div>
+                <div>
+                    <h2 class="section-title">Impacto da Atualização do BR-Core (Julho / 2026)</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Mudanças recentes na especificação
+                        oficial da RNDS</p>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <div class="alert-icon">!</div>
+                <div class="alert-content">
+                    <h3>Atenção: Nova Versão do BR-Core Lançada em Julho de 2026</h3>
+                    <p>
+                        Durante a elaboração do nosso estudo, a RNDS publicou uma versão atualizada do modelo BR-Core.
+                        Como o BR-Core forma a base do RAC e de todos os outros modelos, <strong>alterações em
+                            cardinalidades ou em referências de ValueSets no BR-Core propagam-se imediatamente para os
+                            perfis do RAC</strong>.
+                    </p>
+                    <p style="margin-top: 10px; font-size: 0.88rem; color: var(--accent-amber);">
+                        <strong>Consequência no Projeto:</strong> Foi necessário revalidar todos os mapeamentos prévios
+                        de DTOs e validar se as dependências do RAC ainda utilizam os identificadores canonicals
+                        corretos da versão recente.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 7: Subconjunto Prático e Solução -->
+        <section id="step7" class="section-card">
+            <div class="section-header">
+                <div class="section-num">7</div>
+                <div>
+                    <h2 class="section-title">Definição do Subconjunto Prático de Perfis</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Simulador Interativo de Dependências
+                        Mínimas para Desenvolvimento</p>
+                </div>
+            </div>
+            <p class="section-desc">
+                Para viabilizar a implementação do software sem precisar codificar os dezenas de perfis da RNDS de uma
+                só vez,
+                definimos o <strong>Subconjunto Mínimo Viável</strong>. Marque abaixo quais funcionalidades seu software
+                precisa suportar e veja automaticamente quais Perfis FHIR você precisa implementar:
+            </p>
+
+            <div class="resolver-box">
+                <div style="font-weight: 700; color: #fff; margin-bottom: 12px;">Selecione os Casos de Uso do seu
+                    Software:</div>
+                <div class="checkbox-group">
+                    <label class="check-card">
+                        <input type="checkbox" value="diag" onchange="calculateSubset()" id="chk-diag">
+                        <div>
+                            <div style="font-weight: 700;">Diagnóstico de Laboratório</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Enviar exames e laudos
+                                laboratoriais</div>
+                        </div>
+                    </label>
+                    <label class="check-card">
+                        <input type="checkbox" value="rac" onchange="calculateSubset()" id="chk-rac">
+                        <div>
+                            <div style="font-weight: 700;">Registro de Atendimento Clínico (RAC)</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Registrar consulta ou
+                                atendimento de urgência</div>
+                        </div>
+                    </label>
+                    <label class="check-card">
+                        <input type="checkbox" value="cond" onchange="calculateSubset()" id="chk-cond">
+                        <div>
+                            <div style="font-weight: 700;">Registro de Condição / Problema</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Atribuir diagnósticos e
+                                atestados</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="result-panel">
+                    <div class="result-title">
+                        <span>📦 Subconjunto de Perfis FHIR Requeridos:</span>
+                        <span id="subset-count"
+                            style="font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">(0 perfis
+                            selecionados)</span>
+                    </div>
+                    <div class="result-list" id="subset-results">
+                        <span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic">Selecione pelo
+                            menos um caso de uso acima para calcular as dependências...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        Relatório Técnico de Perfis FHIR da RNDS • Elaborado por Matheus & Henrique • Atualizado conforme diretrizes
+        RNDS 2026
+    </footer>
+
+    <!-- JavaScript Interativo -->
+    <script>
+        // Dados do BR-Core (Matheus)
+        const brCoreData = [
+            {
+                id: "BRIndividuo",
+                fhir: "Patient",
+                title: "BRIndividuo",
+                subtext: "Representa o indivíduo / paciente no SUS",
+                deps: []
+            },
+            {
+                id: "BRProfissional",
+                fhir: "Practitioner",
+                title: "BRProfissional",
+                subtext: "Profissional de Saúde cadastrado no CNES",
+                deps: []
+            },
+            {
+                id: "BRPessoaJuridicaProfissionalLiberal",
+                fhir: "Organization",
+                title: "BRPessoaJuridicaProfissionalLiberal",
+                subtext: "Entidade Jurídica ou Profissional Autônomo",
+                deps: []
+            },
+            {
+                id: "BRAmostraBiologica",
+                fhir: "Specimen",
+                title: "BRAmostraBiologica",
+                subtext: "Amostra Biológica coletada para exames",
+                deps: []
+            },
+            {
+                id: "BREstabelecimentoSaude",
+                fhir: "Organization",
+                title: "BREstabelecimentoSaude",
+                subtext: "Unidade / Hospital / Posto de Saúde",
+                deps: ["BRPessoaJuridicaProfissionalLiberal"]
+            },
+            {
+                id: "BRLotacaoProfissional",
+                fhir: "PractitionerRole",
+                title: "BRLotacaoProfissional",
+                subtext: "Vínculo do profissional com o estabelecimento",
+                deps: ["BREstabelecimentoSaude", "BRProfissional"]
+            },
+            {
+                id: "BRDiagnosticoLaboratorioClinico",
+                fhir: "Observation",
+                title: "BRDiagnosticoLaboratorioClinico",
+                subtext: "Resultado de exame laboratorial",
+                deps: ["BRIndividuo", "BREstabelecimentoSaude", "BRPessoaJuridicaProfissionalLiberal", "BRLotacaoProfissional", "BRAmostraBiologica"]
+            },
+            {
+                id: "BRCondicaoSaude",
+                fhir: "Condition",
+                title: "BRCondicaoSaude",
+                subtext: "Condição de Saúde identificada",
+                deps: ["BRIndividuo", "BRDiagnosticoLaboratorioClinico"]
+            }
+        ];
+
+        // Dados do RAC (Henrique)
+        const racData = [
+            {
+                id: "BRLocalAtendimento",
+                fhir: "Location",
+                title: "BRLocalAtendimento",
+                subtext: "Ambiente físico de atendimento no estabelecimento",
+                deps: []
+            },
+            {
+                id: "BRMedidaObservada",
+                fhir: "Observation",
+                title: "BRMedidaObservada",
+                subtext: "Sinais vitais e medidas antropométricas",
+                deps: ["BRIndividuo"]
+            },
+            {
+                id: "BRProblemaDiagnostico",
+                fhir: "Condition",
+                title: "BRProblemaDiagnostico",
+                subtext: "Problema ou Diagnóstico do Atendimento",
+                deps: ["BRIndividuo"]
+            },
+            {
+                id: "BRProcedimentoRealizado",
+                fhir: "Procedure",
+                title: "BRProcedimentoRealizado",
+                subtext: "Procedimento efetuado durante o contato",
+                deps: ["BRLotacaoProfissional", "BREstabelecimentoSaude", "BRPessoaJuridicaProfissionalLiberal"]
+            },
+            {
+                id: "BRContatoAssistencial",
+                fhir: "Encounter",
+                title: "BRContatoAssistencial",
+                subtext: "Encontro/Consulta entre paciente e profissionais",
+                deps: ["BRIndividuo", "BRProcedimentoRealizado", "BRProblemaDiagnostico", "BREstabelecimentoSaude", "BRPessoaJuridicaProfissionalLiberal", "BRLocalAtendimento"]
+            },
+            {
+                id: "RAC",
+                fhir: "Composition",
+                title: "Registro de Atendimento Clínico (RAC)",
+                subtext: "Documento clínico completo agregador",
+                deps: ["BRContatoAssistencial", "BRProblemaDiagnostico", "BRMedidaObservada"]
+            }
+        ];
+
+        // Renderizar Nodes de um conjunto
+        function renderNodes(containerId, dataset) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+
+            dataset.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "profile-node";
+                card.id = `node-${item.id}`;
+                card.onclick = () => highlightDependencies(item.id, dataset, containerId);
+
+                let depBadges = item.deps.map(d => `<span class="dep-tag">🔗 ${d}</span>`).join("");
+                if (!depBadges) depBadges = `<span style="font-size:0.75rem; color:var(--text-muted)">Sem dependências diretas</span>`;
+
+                card.innerHTML = `
+                    <div class="node-header">
+                        <span class="node-title">${item.title}</span>
+                        <span class="node-fhir">${item.fhir}</span>
+                    </div>
+                    <div class="node-subtext">${item.subtext}</div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary); margin-top:6px; font-weight:600;">Depende de:</div>
+                    <div class="dep-tag-list">${depBadges}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Destacar dependências
+        function highlightDependencies(selectedId, dataset, containerId) {
+            // Limpar destaques
+            document.querySelectorAll(`#${containerId} .profile-node`).forEach(el => {
+                el.classList.remove("selected", "dependency-highlight");
+            });
+
+            const targetCard = document.getElementById(`node-${selectedId}`);
+            if (targetCard) targetCard.classList.add("selected");
+
+            const selectedItem = dataset.find(i => i.id === selectedId);
+            if (!selectedItem) return;
+
+            // Destacar dependências diretas
+            selectedItem.deps.forEach(depId => {
+                const depCard = document.getElementById(`node-${depId}`);
+                if (depCard) {
+                    depCard.classList.add("dependency-highlight");
+                }
+            });
+        }
+
+        // Venn Diagram Info Toggle
+        function showVennInfo(model) {
+            const titleEl = document.getElementById('venn-title');
+            const descEl = document.getElementById('venn-desc');
+
+            const infos = {
+                'BRCORE': {
+                    title: 'BR-Core (Núcleo Nacional Base)',
+                    desc: 'Perfil central e transversal do SUS. Define estruturas universais como Indivíduo, Profissional, Estabelecimento e Lotação. É importado por TODOS os outros modelos.'
+                },
+                'RAC': {
+                    title: 'RAC (Registro de Atendimento Clínico)',
+                    desc: 'Modelo responsável por sumarizar consultas, procedimentos, medidas observadas e condutas assistenciais no atendimento ambulatorial/hospitalar.'
+                },
+                'REL': {
+                    title: 'REL (Registro de Egressos Hospitalares)',
+                    desc: 'Focado na sumarização da internação hospitalar e relatórios de alta do paciente.'
+                },
+                'RIA': {
+                    title: 'RIA (Registro de Imunização e Aplicações)',
+                    desc: 'Modelo estruturado para registro de vacinas aplicadas, histórico vacinal e lotes de imunobiológicos.'
+                }
+            };
+
+            if (infos[model]) {
+                titleEl.innerText = infos[model].title;
+                descEl.innerText = infos[model].desc;
+            }
+        }
+
+        // Subconjunto Resolver (Seção 7)
+        function calculateSubset() {
+            const chkDiag = document.getElementById('chk-diag').checked;
+            const chkRac = document.getElementById('chk-rac').checked;
+            const chkCond = document.getElementById('chk-cond').checked;
+
+            let required = new Set();
+
+            if (chkDiag) {
+                // Diagnostico e suas dependencias
+                required.add("BRDiagnosticoLaboratorioClinico");
+                required.add("BRIndividuo");
+                required.add("BREstabelecimentoSaude");
+                required.add("BRPessoaJuridicaProfissionalLiberal");
+                required.add("BRLotacaoProfissional");
+                required.add("BRProfissional");
+                required.add("BRAmostraBiologica");
+            }
+
+            if (chkCond) {
+                required.add("BRCondicaoSaude");
+                required.add("BRIndividuo");
+                required.add("BRDiagnosticoLaboratorioClinico");
+                required.add("BREstabelecimentoSaude");
+                required.add("BRPessoaJuridicaProfissionalLiberal");
+                required.add("BRLotacaoProfissional");
+                required.add("BRProfissional");
+                required.add("BRAmostraBiologica");
+            }
+
+            if (chkRac) {
+                required.add("RAC");
+                required.add("BRContatoAssistencial");
+                required.add("BRProblemaDiagnostico");
+                required.add("BRMedidaObservada");
+                required.add("BRIndividuo");
+                required.add("BRProcedimentoRealizado");
+                required.add("BREstabelecimentoSaude");
+                required.add("BRPessoaJuridicaProfissionalLiberal");
+                required.add("BRLocalAtendimento");
+                required.add("BRLotacaoProfissional");
+                required.add("BRProfissional");
+            }
+
+            const resultsContainer = document.getElementById('subset-results');
+            const countContainer = document.getElementById('subset-count');
+
+            if (required.size === 0) {
+                resultsContainer.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">Selecione pelo menos um caso de uso acima para calcular as dependências...</span>`;
+                countContainer.innerText = `(0 perfis selecionados)`;
+                return;
+            }
+
+            countContainer.innerText = `(${required.size} perfis exigidos na árvore de dependência)`;
+            resultsContainer.innerHTML = "";
+
+            Array.from(required).forEach((profile, index) => {
+                const chip = document.createElement('div');
+                chip.className = 'result-chip';
+                chip.innerHTML = `<span class="chip-count">${index + 1}</span> ${profile}`;
+                resultsContainer.appendChild(chip);
+            });
+        }
+
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            renderNodes("brcore-nodes", brCoreData);
+            renderNodes("rac-nodes", racData);
+        });
+    </script>
+</body>
+
+</html>
